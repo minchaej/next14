@@ -1,5 +1,3 @@
-// formSchema.js
-
 export const schema = {
     type: "object",
     properties: {
@@ -8,10 +6,8 @@ export const schema = {
       email: { type: "string", format: "email", description: "Email Address" },
       linkedin: { type: "string", format: "uri", description: "LinkedIn Profile URL" },
       visasInterested: { type: "string", description: "Visas You're Interested In" },
-      resume: { type: "string", format: "data-url", description: "Resume/CV" },
       openInput: { type: "string", description: "Open Long Input" }
     },
-    required: ["firstName", "lastName", "email", "linkedin", "visasInterested", "resume", "openInput"]
   };
   
   export const uischema = {
@@ -22,7 +18,6 @@ export const schema = {
       { type: "Control", scope: "#/properties/email" },
       { type: "Control", scope: "#/properties/linkedin" },
       { type: "Control", scope: "#/properties/visasInterested" },
-      { type: "Control", scope: "#/properties/resume" },
       { type: "Control", scope: "#/properties/openInput", options: { multiLine: true } }
     ]
   };

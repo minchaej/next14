@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { JsonForms } from '@jsonforms/react';
 import { materialRenderers, materialCells } from '@jsonforms/material-renderers';
 import { schema, uischema } from './formSchema';
@@ -20,11 +20,21 @@ interface TouchedFields {
   [key: string]: boolean;
 }
 
+// todo fix email linkedin validation json forms
 export default function Page() {
   const [data, setData] = useState<FormData>({});
   const [isLoading, setLoading] = useState<boolean>(false);
   const [touched, setTouched] = useState<TouchedFields>({});
   const [errors, setErrors] = useState<string[]>([]);
+
+  const handleChange = ({ data }: JsonFormsCore) => {
+    setData(data as FormData);
+    const updatedTouched = Object.keys(data).reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {...touched});
+    setTouched(updatedTouched);
+  };
 
   const handleSubmit = async () => {
     const newErrors = [];
@@ -43,11 +53,12 @@ export default function Page() {
 
     setLoading(true);
     setErrors([]);
+
     try {
-      const response = await fetch('/api/leads', {
+      const response = await fetch('http://localhost:3000/api/users', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data),
       });
@@ -61,9 +72,27 @@ export default function Page() {
     setLoading(false);
   };
 
-  const handleChange = ({ errors, data }: JsonFormsCore) => {
-    setData(data as FormData);
-    setTouched({ ...touched, ...Object.keys(data).reduce((acc, key) => ({ ...acc, [key]: true }), {}) });
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    if (file) {
+      setLoading(true);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      try {
+        const response = await fetch('http://localhost:3000/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        const result = await response.json();
+        setData(prev => ({ ...prev, resume: result.key }));
+        alert('File uploaded successfully!');
+      } catch (error) {
+        console.error('Failed to upload file:', error);
+        alert('Failed to upload file.');
+      }
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +107,15 @@ export default function Page() {
             renderers={materialRenderers}
             cells={materialCells}
             validationMode={Object.keys(touched).length > 0 ? 'ValidateAndShow' : 'NoValidation'}
+          />
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.txt"
+            onChange={handleFileChange}
+            disabled={isLoading}
+            className="mt-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0 file:text-sm file:font-semibold
+                      file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
           />
           {errors.map(error => (
             <div key={error} className="text-red-500">{error}</div>
